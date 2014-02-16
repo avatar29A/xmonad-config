@@ -9,13 +9,22 @@ import System.Posix.Unistd
 import XMonad
 import qualified XMonad.StackSet as W
 import XMonad.Actions.SpawnOn
+import XMonad.Hooks.ManageHelpers
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.SetWMName
 import XMonad.Util.Run(spawnPipe)
 import XMonad.Util.EZConfig(additionalKeys)
+import XMonad.Layout.ResizableTile
+import XMonad.Layout.PerWorkspace
 import XMonad.Layout.NoBorders
-import System.IO
+import XMonad.Layout.Tabbed
+import XMonad.Layout.Grid
+import XMonad.Layout.IM
+
+import XMonad.Actions.TopicSpace
+import XMonad.Prompt
+import XMonad.Prompt.Workspace
 
 -- Variables
 scriptBin  = "~/.xmonad/bin/"
@@ -25,14 +34,14 @@ myTerminal = "terminator"
 
 
 -- Whether focus follows the mouse pointer.
-myFocusFollowsMouse = False
+myFocusFollowsMouse = True
 
 -- modMask lets you specify which modkey you want to use. The default
 -- is mod1Mask ("left alt").  You may also consider using mod3Mask
 -- ("right alt"), which does not conflict with emacs keybindings. The
 -- "windows key" is usually mod4Mask.
 --
-myModMask       = mod1Mask
+myModMask       = mod4Mask
 
 -- Border colors for unfocused and focused windows, respectively.
 --
@@ -95,12 +104,17 @@ myMouseBindings (XConfig {XMonad.modMask = modm}) = M.fromList $
 -- If you change layout bindings be sure to use 'mod-shift-space' after
 -- restarting (with 'mod-q') to reset your layout state to the new
 -- defaults, as xmonad preserves your old layout settings by default.
-myLayouts = avoidStruts ( tiled ||| Mirror tiled ||| Full )
+
+talkWorkspaces      = ["talk"]
+
+myLayouts = avoidStruts ( tiled ||| Mirror tiled ||| Full ||| Grid )
 	where
 		tiled = Tall nmaster delta ratio
 		nmaster = 1
 		ratio = 1/2
 		delta = 3/100
+
+--talkLayout      = avoidStruts $ withIM (1%7) (Role "buddy_list") Grid ||| Full
 
 -- Startup hook
 
@@ -111,13 +125,26 @@ myStartupHook =
   -- Fixes java display issue
   setWMName "LG3D"
 
+myManageHook = composeAll
+    [ className =? "MPlayer"        --> doFloat
+    , className =? "Gimp"           --> doFloat
+    , className =? "Vlc"	    --> doFloat
+    , className =? "Pidgin"         --> doShift "talk"
+    , className =? "Pithos"         --> doShift "media"
+    , className =? "Thunderbird"    --> doShift "email"
+    , resource  =? "desktop_window" --> doIgnore
+    , resource  =? "kdesktop"       --> doIgnore
+    , isFullscreen                  --> doFullFloat
+    ]
+
 main = do
 	xmproc <- spawnPipe "/usr/bin/xmobar ~/.xmobarrc"
 	xmonad $ defaultConfig
 		{
-		  manageHook = manageDocks <+> (className =? "Vlc" --> doFloat)  <+> manageHook defaultConfig
+		  manageHook = manageDocks <+> myManageHook  <+> manageHook defaultConfig
     		, layoutHook = lessBorders OnlyFloat $ myLayouts
 		, focusFollowsMouse = myFocusFollowsMouse
 		, startupHook = myStartupHook
 		, mouseBindings = myMouseBindings
+                , modMask       = myModMask
     		} `additionalKeys` myKeys
