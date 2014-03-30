@@ -73,8 +73,12 @@ calculator        = 0x1008FF1D
 myKeys = [ ((mod4Mask .|. shiftMask, xK_z), spawn "gnome-screensaver-command --lock") --mod4mask is the windows key
            , ((0, xK_Print), spawn "gnome-screenshot")
            , ((mod1Mask, xK_F4), kill)
+           -- Volume
+           , ((0                     , 0x1008FF11), spawn "amixer set Master 2-")
+           , ((0                     , 0x1008FF13), spawn "amixer set Master 2+")
+           , ((0                     , 0x1008FF12), spawn "amixer -D pulse set Master 1+ toggle")
 	   -- Window launching
-    	   , ((mod4Mask, xK_c), spawnHere $ myTerminal ++ " -e python")
+    	   , ((mod4Mask, xK_c), spawn "gnome-calculator")
 	   , ((mod4Mask, xK_i), spawnHere $ myTerminal ++ " -e ipython")
 	 ]
 

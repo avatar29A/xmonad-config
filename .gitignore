@@ -1,0 +1,13 @@
+# Ignore everything
+
+*.save
+*.save.*
+*.o
+*.hi
+*.errors
+*.emacs
+
+xmonad-x86_64-linux
+
+# But not these files:
+#!*.hs
